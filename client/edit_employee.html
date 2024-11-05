@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link
+        rel="stylesheet"
+        href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+        integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+        crossorigin="anonymous"
+    />
+    <style>
+        .error {
+            border: 2px solid red;
+        }
+    </style>
+    <script src="auth.js"></script>
+</head>
+<body onload="initializePage(); displayUserFullName(); loadData();">
+
+    <!-- Welcome message and logout -->
+    <div class="container" style="margin-top: 50px">
+        <div>
+            <span id="userFullName"></span>
+            <a href="#" onclick="logOut()">Log Out</a>
+        </div>
+
+        <h1>Edit Employee</h1>
+        <br />
+        <div class="form-group">
+            <label for="firstname">First Name</label>
+            <input type="text" class="form-control" id="firstname" placeholder="firstName" />
+        </div>
+        <div class="form-group">
+            <label for="lastname">Last Name</label>
+            <input type="text" class="form-control" id="lastname" placeholder="lastName" />
+        </div>
+        <div class="form-group">
+            <label for="startworkyear">Start Work Year</label>
+            <input type="text" class="form-control" id="startworkyear" placeholder="start work year" />
+        </div>
+        <div class="form-group">
+            <label for="DepartmentID">DepartmentID</label>
+            <input type="text" class="form-control" id="DepartmentID" placeholder="Department ID" />
+        </div>
+        <br />
+        
+        <button type="button" class="btn btn-primary" onclick="updateEmployee()">Update</button>
+        <button type="button" class="btn btn-danger" onclick="deleteEmployee()">Delete</button>
+        <br /><br />
+        <caption>Employee Shifts :</caption>
+        <br /><br />
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col">Starting Hour</th>
+                    <th scope="col">Ending Hour</th>
+                </tr>
+            </thead>
+            <tbody id="tBody"></tbody>
+        </table>
+        <br /><br />
+        <caption>Register to Shift :</caption>
+        <br /><br />
+        <label for="shiftID">Shift ID</label>
+        <input type="text" class="form-control" id="shiftID" placeholder="shiftID" />
+        <br />
+        <button type="button" class="btn btn-primary" onclick="updateShift()">Register</button>
+
+    </div>
+
+    <script>
+        const urlEmp = 'http://localhost:3000/Employee';
+        const urlShift = 'http://localhost:3000/Shift';
+        const employeeId = sessionStorage.getItem('employeeId');
+
+        function initializePage() {
+            // Redirect to login if user is not authenticated
+            if (!isAuthenticated()) {
+                window.location.href = 'login.html';
+                return;
+            }
+        }
+
+        async function loadData() {
+            const resp = await fetch(`${urlEmp}/${employeeId}`);
+            const employee = await resp.json();
+
+            document.getElementById('firstname').value = employee.FirstName;
+            document.getElementById('lastname').value = employee.LastName;
+            document.getElementById('startworkyear').value = employee.StartWorkYear;
+            document.getElementById('DepartmentID').value = employee.DepartmentID;
+            await getAllShifts();
+        }
+
+        function validateFields() {
+            let valid = true;
+            const fields = ['firstname', 'lastname', 'startworkyear', 'DepartmentID'];
+            fields.forEach(field => {
+                const input = document.getElementById(field);
+                if (!input.value) {
+                    input.classList.add('error');
+                    valid = false;
+                } else {
+                    input.classList.remove('error');
+                }
+            });
+            return valid;
+        }
+
+        function validateShiftField() {
+            let valid = true;
+            const fields = ['shiftID'];
+            fields.forEach(field => {
+                const input = document.getElementById(field);
+                if (!input.value) {
+                    input.classList.add('error');
+                    valid = false;
+                } else {
+                    input.classList.remove('error');
+                }
+            });
+            return valid;
+        }
+
+        async function updateEmployee() {
+            if (!validateFields()) {
+                return;
+            }
+
+            const obj = {
+                FirstName: document.getElementById('firstname').value,
+                LastName: document.getElementById('lastname').value,
+                StartWorkYear: document.getElementById('startworkyear').value,
+                DepartmentID: document.getElementById('DepartmentID').value,
+            };
+
+            const user = JSON.parse(sessionStorage.getItem('userInfo'));
+            const response = await fetch(`http://localhost:3000/Employee/${employeeId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-user-id': user.id // הוספת ה-userId בכותרת
+                },
+                body: JSON.stringify(obj)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("Error updating employee:", errorData.message);
+                return;
+            }
+
+            const result = await response.json();
+            console.log("Employee updated:", result);
+        }
+
+        async function deleteEmployee() {
+            const user = JSON.parse(sessionStorage.getItem('userInfo'));
+            const response = await fetch(`http://localhost:3000/Employee/${employeeId}`, {
+                method: 'DELETE',
+                headers: {
+                    'x-user-id': user.id // הוספת ה-userId בכותרת
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error("Error deleting employee:", errorData.message);
+                return;
+            }
+
+            console.log("Employee deleted successfully");
+            window.location.href = 'EmployeesPage.html';
+        }
+
+        async function getAllShifts() {
+            const respshift = await fetch(urlShift);
+            const shifts = await respshift.json();
+            const tBody = document.getElementById('tBody');
+            shifts.forEach(shift => {
+                if (shift.EmployeeID === employeeId) {
+                    const tr = tBody.insertRow();
+                    const tddate = tr.insertCell();
+                    tddate.innerText = shift.date;
+
+                    const tdstart = tr.insertCell();
+                    tdstart.innerText = shift.startingHour;
+
+                    const tdend = tr.insertCell();
+                    tdend.innerText = shift.endingHour;
+                }
+            });
+        }
+
+        async function updateShift() {
+    if (!validateShiftField()) {
+        return;
+    }
+
+    const respshift = await fetch(urlShift);
+    const shifts = await respshift.json();
+    const shiftid = document.getElementById('shiftID').value;
+    const tempshift = shifts.find(x => x._id == shiftid);
+
+    if (tempshift) {
+        const obj = {
+            date: tempshift.date,
+            startingHour: tempshift.startingHour,
+            endingHour: tempshift.endingHour,
+            EmployeeID: employeeId,
+        };
+
+        const user = JSON.parse(sessionStorage.getItem('userInfo')); // קבלת ה-userId מה-sessionStorage
+        const response = await fetch(`${urlShift}/${tempshift._id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-user-id': user.id // הוספת ה-userId בכותרת
+            },
+            body: JSON.stringify(obj),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error("Error updating shift:", errorData.message);
+            return;
+        }
+
+        console.log("Shift updated successfully");
+    }
+}
+
+    </script>
+</body>
+</html>

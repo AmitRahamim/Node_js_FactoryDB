@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link
+        rel="stylesheet"
+        href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+        integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+        crossorigin="anonymous"
+    />
+    <script src="auth.js"></script>
+    <style>
+        .nav-button {
+            width: 150px;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body onload="initializePage(); displayUserFullName();">
+
+    <!-- Welcome message and logout -->
+    <div class="container text-center" style="margin-top: 50px">
+        <div class="d-flex justify-content-between">
+            <span id="userFullName"></span>
+            <a href="#" onclick="logOut()">Log Out</a>
+        </div>
+
+        <h1>Welcome to the Management System</h1>
+        <p>Select an option below to proceed:</p>
+
+        <div class="d-flex justify-content-center mt-4">
+            <button class="btn btn-primary nav-button" onclick="navigateTo('EmployeesPage.html')">Employees</button>
+            <button class="btn btn-secondary nav-button" onclick="navigateTo('DepartmentPage.html')">Departments</button>
+            <button class="btn btn-success nav-button" onclick="navigateTo('ShiftsPage.html')">Shifts</button>
+            <button class="btn btn-success nav-button" onclick="navigateTo('UsersPage.html')">Users</button>
+        </div>
+    </div>
+
+    <script>
+        function initializePage() {
+            // Redirect to login if the user is not authenticated
+            if (!isAuthenticated()) {
+                window.location.href = 'login.html';
+                return;
+            }
+        }
+
+        function navigateTo(page) {
+            window.location.href = page;
+        }
+    </script>
+</body>
+</html>
