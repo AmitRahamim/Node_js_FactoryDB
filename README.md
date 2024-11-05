@@ -50,7 +50,7 @@ JSON Web Token (JWT): For authentication and authorization.
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/factory-simulation.git
+   git clone https://github.com/AmitRahamim/Node_js_FactoryDB.git
    
 2.Navigate to the project directory
 
