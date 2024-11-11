@@ -3,7 +3,7 @@ const User = require('../models/user');
 
 async function limitActions(req, res, next) {
     try {
-        // ודא שה- userId קיים
+        // Make sure the user ID exists
         if (!req.user || !req.user._id) {
             return res.status(401).json({ message: "Unauthorized: User ID is missing" });
         }
@@ -15,27 +15,28 @@ async function limitActions(req, res, next) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // בדוק אם יש לאפס את כמות הפעולות
+        // Check if we need to reset the daily action count
         const currentDate = new Date();
         if (user.lastActionDate) {
             const lastActionDate = new Date(user.lastActionDate);
-            // אם חלף יום מאז הפעולה האחרונה, איפס את מספר הפעולות
-            if (currentDate - lastActionDate >= 24 * 60 * 60 * 1000) { // 24 שעות
-                user.NumOfActionsLeft = user.NumOfActions; // איפוס
+            // If 24 hours have passed since the last action, reset the actions count
+            if (currentDate - lastActionDate >= 24 * 60 * 60 * 1000) { // 24 hours
+                user.NumOfActionsLeft = user.NumOfActions; // Reset actions
+                user.lastActionDate = currentDate; // Update the last action date to now
             }
         }
 
-        // בדוק אם כמות הפעולות היומיות נגמרה
+        // If the daily action limit is reached, reject the request
         if (user.NumOfActionsLeft <= 0) {
             return res.status(403).json({ message: "Daily action limit reached. Please try again tomorrow." });
         }
 
-        // אם הפעולה מותרת, עדכן את כמות הפעולות ואת תאריך הפעולה האחרונה
+        // If allowed, reduce the number of actions left and update last action date
         user.NumOfActionsLeft -= 1;
-        user.lastActionDate = currentDate; // עדכון לתאריך הנוכחי
+        user.lastActionDate = currentDate; // Update the date of the last action
         await user.save();
 
-        next(); // המשך לפעולה הבאה אם לא הגעת למגבלה
+        next(); // Proceed with the next middleware or action
     } catch (error) {
         console.error("Error in limitActions middleware:", error.message);
         res.status(500).json({ message: error.message });
