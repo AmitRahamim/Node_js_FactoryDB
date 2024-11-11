@@ -12,49 +12,41 @@ async function login(event) {
     const email = document.getElementById('email').value;
 
     try {
-        // בקשה ל-API החיצוני
         const response = await fetch(loginUrl);
         const users = await response.json();
-        console.log("Users from external API:", users);
 
-        // בקשה למסד הנתונים המקומי
         const responsedb = await fetch(userUrl);
         const usersdb = await responsedb.json();
-        console.log("Users from local database:", usersdb);
 
-        // בדיקת קרדיטנשלס מול ה-API החיצוני
         const user = users.find(user => user.username === username && user.email === email);
-        console.log("User found in external API:", user);
 
         if (user) {
-            // חיפוש במסד הנתונים המקומי לפי שם מלא
             const tempuser = usersdb.find(x => x.FullName === user.name);
-            console.log("User found in local database:", tempuser);
 
             if (!tempuser) {
                 showError("User not found in local database.");
                 return;
             }
 
-            // בקשת סטטוס הפעולות מהשרת המקומי לפי ObjectId
+            // Fetch the status of the user
             const userStatusResponse = await fetch(`http://localhost:3000/User/status/${tempuser._id}`);
             const statusData = await userStatusResponse.json();
-            console.log("Status data:", statusData);
 
+            // Check if the user can log in
             if (!statusData.canLogin) {
                 alert("You've reached your daily action limit. Please try again tomorrow.");
                 return;
             }
 
-            // שמירת המידע על המשתמש ב-sessionStorage
+            // Store user information in session storage
             const userInfo = {
-                id: tempuser._id, // שים לב שמירה של ה-userId
+                id: tempuser._id,
                 name: tempuser.FullName
             };
             sessionStorage.setItem(tokenKey, generateToken({ id: tempuser._id, name: tempuser.FullName }));
-            sessionStorage.setItem(userKey, JSON.stringify(userInfo)); // שמירת המידע על המשתמש
+            sessionStorage.setItem(userKey, JSON.stringify(userInfo));
 
-            // ניתוב לעמוד הבית
+            // Redirect to home page
             window.location.href = './home.html';
         } else {
             showError("Invalid credentials, please try again.");
