@@ -1,5 +1,5 @@
 # Node_js_FactoryDB
-# Node_js_FactoryDB
+
 # Factory Simulation Project
 
 ## Description
