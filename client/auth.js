@@ -12,17 +12,9 @@ async function login(event) {
     const email = document.getElementById('email').value;
 
     try {
-<<<<<<< HEAD
-        // Fetch users from the external API
         const response = await fetch(loginUrl);
         const users = await response.json();
 
-        // Fetch users from the local database
-=======
-        const response = await fetch(loginUrl);
-        const users = await response.json();
-
->>>>>>> origin/main
         const responsedb = await fetch(userUrl);
         const usersdb = await responsedb.json();
 
@@ -36,17 +28,9 @@ async function login(event) {
                 return;
             }
 
-<<<<<<< HEAD
-            // Fetch user status (canLogin) from the server
-            const userStatusResponse = await fetch(`http://localhost:3000/User/status/${tempuser._id}`);
-            const statusData = await userStatusResponse.json();
-
-            console.log("Status data:", statusData);
-=======
             // Fetch the status of the user
             const userStatusResponse = await fetch(`http://localhost:3000/User/status/${tempuser._id}`);
             const statusData = await userStatusResponse.json();
->>>>>>> origin/main
 
             // Check if the user can log in
             if (!statusData.canLogin) {
@@ -54,17 +38,6 @@ async function login(event) {
                 return;
             }
 
-<<<<<<< HEAD
-            const userInfo = {
-                id: tempuser._id, 
-                name: tempuser.FullName
-            };
-
-            // Store token and user information in sessionStorage
-            sessionStorage.setItem(tokenKey, generateToken({ id: tempuser._id, name: tempuser.FullName }));
-            sessionStorage.setItem(userKey, JSON.stringify(userInfo));
-
-=======
             // Store user information in session storage
             const userInfo = {
                 id: tempuser._id,
@@ -73,7 +46,6 @@ async function login(event) {
             sessionStorage.setItem(tokenKey, generateToken({ id: tempuser._id, name: tempuser.FullName }));
             sessionStorage.setItem(userKey, JSON.stringify(userInfo));
 
->>>>>>> origin/main
             // Redirect to home page
             window.location.href = './home.html';
         } else {
