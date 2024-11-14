@@ -5,28 +5,44 @@ const mongoose = require('mongoose');
 const User = require('../models/user');
 
 router.get('/status/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+      const { id } = req.params;
 
-        // המרת ה-id ל-ObjectId ובדיקה אם הוא תקין
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ message: "Invalid user ID format" });
-        }
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+          return res.status(400).json({ message: "Invalid user ID format" });
+      }
 
-        const user = await User.findById(id);
+      const user = await User.findById(id);
 
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+      if (!user) {
+          return res.status(404).json({ message: "User not found" });
+      }
 
-        // בדיקה אם המשתמש יכול לבצע פעולות
-        const canLogin = user.NumOfActionsLeft > 0;
-        res.json({ canLogin });
-    } catch (error) {
-        console.error("Error in /status route:", error.message);
-        res.status(500).json({ message: error.message });
-    }
+      // Check if the user can log in
+      let canLogin = false;
+      
+      // If the user has actions left, they can log in
+      if (user.NumOfActionsLeft > 0) {
+          canLogin = true;
+      } else {
+          // If 24 hours have passed, reset actions
+          const currentDate = new Date();
+          const lastActionDate = new Date(user.lastActionDate);
+          if (currentDate - lastActionDate >= 24 * 60 * 60 * 1000) {
+              user.NumOfActionsLeft = user.NumOfActions;  // Reset actions
+              user.lastActionDate = currentDate;  // Update last action date to now
+              await user.save();
+              canLogin = true;
+          }
+      }
+
+      res.json({ canLogin });
+  } catch (error) {
+      console.error("Error in /status route:", error.message);
+      res.status(500).json({ message: error.message });
+  }
 });
+
 
 
 // Get All users

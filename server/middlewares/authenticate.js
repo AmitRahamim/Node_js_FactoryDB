@@ -1,9 +1,9 @@
 // authenticate.js
-const User = require('../models/user'); // ודא שהמיקום נכון
+const User = require('../models/user'); // ו
 
 async function authenticate(req, res, next) {
-    // במקרה שלך, נוכל לבדוק את ה-userId שמגיע מהבקשה
-    const userId = req.headers['x-user-id']; // נניח שה-userId יגיע מכותרת הבקשה
+    
+    const userId = req.headers['x-user-id']; 
     if (!userId) {
         return res.status(401).json({ message: "Unauthorized: User ID is missing" });
     }
@@ -14,7 +14,7 @@ async function authenticate(req, res, next) {
             return res.status(401).json({ message: "Unauthorized: User not found" });
         }
 
-        req.user = user; // הוספת המשתמש ל-req כדי לאפשר גישה ב-limitActions
+        req.user = user; 
         next();
     } catch (error) {
         console.error("Error in authenticate middleware:", error.message);

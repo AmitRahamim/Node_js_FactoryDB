@@ -12,9 +12,11 @@ async function login(event) {
     const email = document.getElementById('email').value;
 
     try {
+        // Fetch users from the external API
         const response = await fetch(loginUrl);
         const users = await response.json();
 
+        // Fetch users from the local database
         const responsedb = await fetch(userUrl);
         const usersdb = await responsedb.json();
 
@@ -28,21 +30,23 @@ async function login(event) {
                 return;
             }
 
-            // Fetch the status of the user
+            // Fetch user status (canLogin) from the server
             const userStatusResponse = await fetch(`http://localhost:3000/User/status/${tempuser._id}`);
             const statusData = await userStatusResponse.json();
 
-            // Check if the user can log in
+            console.log("Status data:", statusData);
+
             if (!statusData.canLogin) {
                 alert("You've reached your daily action limit. Please try again tomorrow.");
                 return;
             }
 
-            // Store user information in session storage
             const userInfo = {
-                id: tempuser._id,
+                id: tempuser._id, 
                 name: tempuser.FullName
             };
+
+            // Store token and user information in sessionStorage
             sessionStorage.setItem(tokenKey, generateToken({ id: tempuser._id, name: tempuser.FullName }));
             sessionStorage.setItem(userKey, JSON.stringify(userInfo));
 
@@ -82,5 +86,3 @@ function displayUserFullName() {
         document.getElementById('userFullName').textContent = `Welcome, ${user.name}`;
     }
 }
-
-// Call displayUserFullName on pages where the user's name should be displayed.
