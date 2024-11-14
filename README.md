@@ -1,4 +1,8 @@
 # Node_js_FactoryDB
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/main
 # Factory Simulation Project
 
 ## Description
